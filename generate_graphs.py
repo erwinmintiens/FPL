@@ -1,10 +1,13 @@
 import configparser
 import json
+import os
+
 import fpl_api
 import matplotlib.pyplot as plt
 # import numpy as np
 import __init__
 from typing import Union
+import pandas as pd
 
 __init__.setup()
 
@@ -77,8 +80,129 @@ def get_extra_captaincy_points_between_gws(fpl_connection: fpl_api.FPLCalls, per
     return result
 
 
-def get_all_person_data_and_save_to_json(fpl_connection: fpl_api.FPLCalls, person_id):
-    pass
+def get_all_person_data_and_save_to_json(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls):
+    previous_gameweek = 0
+    for gameweek in bootstrap_static_json["events"]:
+        if gameweek["is_previous"]:
+            previous_gameweek = gameweek["id"]
+    for person_name, person_id in config["players"].items():
+        gw_history = list()
+        for item in range(1, previous_gameweek + 1):
+            result_call = fpl_connection.get_person_picks(person_id, item)
+            result = json.loads(result_call.text)
+            gw_history.append(result)
+        with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json", 'w') as outfile:
+            outfile.write(json.dumps(gw_history))
+
+
+def update_persons_jsons(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls):
+    previous_gameweek = 0
+    for gameweek in bootstrap_static_json["events"]:
+        if gameweek["is_previous"]:
+            previous_gameweek = gameweek["id"]
+            print("Previous Gameweek", previous_gameweek)
+    for person_name, person_id in config["players"].items():
+        if os.path.exists(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json"):
+            with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json") as file:
+                json_file = json.load(file)
+            gameweeks_in_json = list(map(int, json_file.keys()))
+
+            if previous_gameweek == max(gameweeks_in_json):
+                continue
+            for item in range(max(gameweeks_in_json) + 1, previous_gameweek + 1):
+                result_call = fpl_connection.get_person_picks(person_id, item)
+                result = json.loads(result_call.text)
+                json_file[item] = result
+            with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json",
+                      'w') as outfile:
+                outfile.write(json.dumps(json_file))
+        else:
+            gw_history = dict()
+            for item in range(1, previous_gameweek + 1):
+                result_call = fpl_connection.get_person_picks(person_id, item)
+                result = json.loads(result_call.text)
+                gw_history[item] = result
+            with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json",
+                      'w') as outfile:
+                outfile.write(json.dumps(gw_history))
+
+
+def generate_extra_captaincy_points_graph():
+    total_y_axis = list()
+    for person_name, person_id in config["players"].items():
+        y_axis = list()
+        if os.path.exists(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json"):
+            with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json") as file:
+                json_file = json.load(file)
+            max_gw = 0
+            for gw in json_file:
+                if gw["entry_history"]["event"] > max_gw:
+                    max_gw = gw["entry_history"]["event"]
+            x_axis = list()
+            for item in range(1, max_gw + 1):
+                x_axis.append("GW" + str(item))
+            for gameweek in json_file:
+                points_this_gw = 0
+                for player in gameweek["picks"]:
+                    if player["is_captain"] and player["multiplier"] not in [0, "0"]:
+                        if os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json"):
+                            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json") as file:
+                                gameweek_json_file = json.load(file)
+                            for item in gameweek_json_file:
+                                if item["element"] == player["element"]:
+                                    points_this_gw += item["total_points"]
+                    elif player["is_captain"] and player["multiplier"] in [0, "0"]:
+                        for player in gameweek["picks"]:
+                            if player["is_vice_captain"] and player["multiplier"] not in [0, "0"]:
+                                if os.path.exists(
+                                        config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(
+                                                gameweek["entry_history"]["event"]) + ".json"):
+                                    with open(config["settings"][
+                                                  "current_season"] + "/data/gameweek_history/gameweek_" + str(
+                                            gameweek["entry_history"]["event"]) + ".json") as file:
+                                        gameweek_json_file = json.load(file)
+                                    for item in gameweek_json_file:
+                                        if item["element"] == player["element"]:
+                                            points_this_gw += item["total_points"]
+                    else:
+                        print("No valid value")
+
+                if gameweek["active_chip"] == "3xc":
+                    print(points_this_gw * 2)
+                    y_axis.append(points_this_gw * 2)
+                else:
+                    print(points_this_gw)
+                    y_axis.append(points_this_gw)
+        total_y_axis.append(y_axis)
+    plt.plot(x_axis, total_y_axis)
+    plt.show()
+
+
+
+def update_entire_player_database():
+    last_gw = 0
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    for gameweek in bootstrap_static["events"]:
+        if gameweek["finished"] and gameweek["is_previous"]:
+            last_gw = gameweek["id"]
+    for player in bootstrap_static["elements"]:
+        print("Player", player["id"])
+        player_summary_call = conn.get_player_summary(player["id"])
+        if player_summary_call.status_code != 200:
+            return
+        player_summary = json.loads(player_summary_call.text)
+        for gw in player_summary["history"]:
+            print("GW", gw["round"])
+            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gw["round"]) + ".json", "r") as file:
+                gameweek_json = json.load(file)
+            gameweek_json.append(gw)
+            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(
+                    gw["round"]) + ".json", "w") as file:
+                file.write(json.dumps(gameweek_json))
 
 
 if __name__ == '__main__':
@@ -105,8 +229,19 @@ if __name__ == '__main__':
     #     plt.show()
     #     exit()
 
-    print(get_person_captain_for_gameweek(conn, 1986671, 25))
-    print(get_points_for_player(conn, 570, 25))
+    # print(get_person_captain_for_gameweek(conn, 1986671, 25))
+    # print(get_points_for_player(conn, 570, 25))
+    #
+    # captain_points = get_extra_captaincy_points_between_gws(conn, config["players"]["erwin"], 25, 33)
+    # print(sum(captain_points))
 
-    captain_points = get_extra_captaincy_points_between_gws(conn, config["players"]["erwin"], 25, 33)
-    print(sum(captain_points))
+    # print(conn.get_person_picks(435872, 1))
+
+    # get_all_person_data_and_save_to_json(bootstrap_static, conn)
+
+    # update_persons_jsons(bootstrap_static, conn)
+
+    # update_entire_player_database()
+    generate_extra_captaincy_points_graph()
+
+

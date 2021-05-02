@@ -1,5 +1,7 @@
+import json
 import os
 import configparser
+import sqlite3
 
 
 def setup():
@@ -29,3 +31,14 @@ def setup():
 
     if not os.path.exists(config["settings"]["current_season"]):
         os.makedirs(config["settings"]["current_season"])
+    if not os.path.exists(config["settings"]["current_season"] + "/data"):
+        os.makedirs(config["settings"]["current_season"] + "/data")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history"):
+        os.makedirs(config["settings"]["current_season"] + "/data/gameweek_history")
+    for i in range(1, 39):
+        if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json"):
+            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json", "w") as file:
+                file.write("[]")
+
+
+setup()
