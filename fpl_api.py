@@ -21,6 +21,12 @@ class FPLCalls:
         return requests.get(url=url)
 
     def get_person_picks(self, person_id=None, gameweek=None):
+        """
+
+        :param person_id: (int) | ID of the person.
+        :param gameweek: (int) | gameweek. Values 1 to 38.
+        :return: JSON
+        """
         if not self._base_url or not person_id or not gameweek:
             return
         url = f"{self._base_url}/entry/{person_id}/event/{gameweek}/picks/"
