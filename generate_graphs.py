@@ -129,8 +129,11 @@ def update_persons_jsons(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls
 
 def generate_extra_captaincy_points_graph():
     total_y_axis = list()
+    persons = list()
     for person_name, person_id in config["players"].items():
+        persons.append(person_name)
         y_axis = list()
+        y_axis.append(person_name)
         if os.path.exists(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json"):
             with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json") as file:
                 json_file = json.load(file)
@@ -144,16 +147,16 @@ def generate_extra_captaincy_points_graph():
             for gameweek in json_file:
                 points_this_gw = 0
                 for player in gameweek["picks"]:
-                    if player["is_captain"] and player["multiplier"] not in [0, "0"]:
+                    if player["is_captain"] and player["multiplier"] not in [0, "0", 1, "1"]:
                         if os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json"):
                             with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json") as file:
                                 gameweek_json_file = json.load(file)
                             for item in gameweek_json_file:
                                 if item["element"] == player["element"]:
                                     points_this_gw += item["total_points"]
-                    elif player["is_captain"] and player["multiplier"] in [0, "0"]:
+                    elif player["is_captain"] and player["multiplier"] in [0, "0", 1, "1"]:
                         for player in gameweek["picks"]:
-                            if player["is_vice_captain"] and player["multiplier"] not in [0, "0"]:
+                            if player["is_vice_captain"] and player["multiplier"] not in [0, "0", 1, "1"]:
                                 if os.path.exists(
                                         config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(
                                                 gameweek["entry_history"]["event"]) + ".json"):
@@ -165,7 +168,7 @@ def generate_extra_captaincy_points_graph():
                                         if item["element"] == player["element"]:
                                             points_this_gw += item["total_points"]
                     else:
-                        print("No valid value")
+                        pass
 
                 if gameweek["active_chip"] == "3xc":
                     print(points_this_gw * 2)
@@ -174,21 +177,42 @@ def generate_extra_captaincy_points_graph():
                     print(points_this_gw)
                     y_axis.append(points_this_gw)
         total_y_axis.append(y_axis)
-    plt.plot(x_axis, total_y_axis)
+    fig = plt.figure(figsize=(20, 10))
+    # ax = fig.add_axes([0.05, 0.1, 0.9, 0.85])
+    for i in range(len(total_y_axis)):
+        plt.plot(x_axis, total_y_axis[i][1:])
+    plt.legend(persons)
+    plt.grid()
     plt.show()
+    fig.savefig('captain_points.png')
 
+    gameweek5, gameweek10, gameweek15, gameweek20, gameweek25, gameweek30, gameweek35, gameweek38 = list(), list(), list(), list(), list(), list(), list(), list()
+
+    for element in total_y_axis:
+        print(element)
+        element.pop(0)
+        gameweek5.append(sum(element[0:5]))
+        gameweek10.append(sum(element[5:10]))
+        gameweek15.append(sum(element[10:15]))
+        gameweek20.append(sum(element[15:20]))
+        gameweek25.append(sum(element[20:25]))
+        gameweek30.append(sum(element[25:30]))
+        gameweek35.append(sum(element[30:35]))
+        gameweek38.append(sum(element[35:38]))
+    print(gameweek5)
 
 
 def update_entire_player_database():
-    last_gw = 0
     conn = fpl_api.FPLCalls()
     bootstrap_static_call = conn.get_bootstrap_static()
     if bootstrap_static_call.status_code != 200:
         return
     bootstrap_static = json.loads(bootstrap_static_call.text)
-    for gameweek in bootstrap_static["events"]:
-        if gameweek["finished"] and gameweek["is_previous"]:
-            last_gw = gameweek["id"]
+
+    for event in bootstrap_static["events"]:
+        if event["finished"] and event["is_previous"]:
+            last_gw = event["id"]
+
     for player in bootstrap_static["elements"]:
         print("Player", player["id"])
         player_summary_call = conn.get_player_summary(player["id"])
@@ -196,7 +220,6 @@ def update_entire_player_database():
             return
         player_summary = json.loads(player_summary_call.text)
         for gw in player_summary["history"]:
-            print("GW", gw["round"])
             with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gw["round"]) + ".json", "r") as file:
                 gameweek_json = json.load(file)
             gameweek_json.append(gw)
@@ -241,7 +264,7 @@ if __name__ == '__main__':
 
     # update_persons_jsons(bootstrap_static, conn)
 
-    # update_entire_player_database()
-    generate_extra_captaincy_points_graph()
+    update_entire_player_database()
+    # generate_extra_captaincy_points_graph()
 
 
