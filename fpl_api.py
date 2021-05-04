@@ -240,8 +240,3 @@ class FPLCalls:
             return response
         url = f"{self._base_url}/entry/{person_id}/history/"
         return requests.get(url=url)
-
-
-if __name__ == '__main__':
-    conn = FPLCalls()
-    print(conn.get_person_history(1986671).text)
