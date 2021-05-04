@@ -35,6 +35,8 @@ def setup():
         os.makedirs(config["settings"]["current_season"] + "/data")
     if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history"):
         os.makedirs(config["settings"]["current_season"] + "/data/gameweek_history")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/managers"):
+        os.makedirs(config["settings"]["current_season"] + "/data/managers")
     for i in range(1, 39):
         if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json"):
             with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json", "w") as file:
