@@ -12,6 +12,49 @@ config = configparser.ConfigParser()
 config.read('conf/config.ini')
 
 
+def save_config():
+    with open('conf/config.ini', 'w') as configfile:
+        config.write(configfile)
+
+
+def add_manager(manager_name: str, manager_id: Union[int, str]):
+    if manager_name in config["managers"]:
+        raise ValueError(f"Manager {manager_name} already present in config.ini")
+    if str(manager_id) in config["managers"].values():
+        raise ValueError(f"Manager ID {manager_id} already present in config.ini")
+    config["managers"][manager_name] = str(manager_id)
+    save_config()
+
+
+def add_league(league_name: str, league_id: Union[int, str]):
+    if league_name in config["leagues"]:
+        raise ValueError(f"League name {league_name} already present in config.ini")
+    if str(league_id) in config["leagues"].values():
+        raise ValueError(f"League ID {league_id} already present in config.ini")
+    config["leagues"][league_name] = str(league_id)
+    save_config()
+
+
+def delete_manager(manager_id: Union[int, str]):
+    if str(manager_id) not in config["managers"].values():
+        raise ValueError(f"Manager ID {manager_id} not found in config.ini")
+    for name, value in config["managers"].items():
+        if value == str(manager_id):
+            del config["managers"][name]
+            break
+    save_config()
+
+
+def delete_league(league_id: Union[int, str]):
+    if str(league_id) not in config["leagues"].values():
+        raise ValueError(f"League with ID {league_id} not found in config.ini")
+    for name, value in config["leagues"].items():
+        if value == str(league_id):
+            del config["leagues"][name]
+            break
+    save_config()
+
+
 def get_all_person_data_and_save_to_json(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls):
     previous_gameweek = 0
     for gameweek in bootstrap_static_json["events"]:
@@ -121,9 +164,10 @@ if __name__ == '__main__':
 
     # get_all_person_data_and_save_to_json(bootstrap_static, conn)
 
-    update_persons_jsons(bootstrap_static, conn)
+    # update_persons_jsons(bootstrap_static, conn)
 
     # update_entire_player_database()
+    delete_league(435851)
 
 
 
