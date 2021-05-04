@@ -26,6 +26,7 @@ def setup():
             "stijn": "3725741",
             "niels": "578815"
         }
+        config["leagues"] = {}
         with open('conf/config.ini', 'w') as configfile:
             config.write(configfile)
 
