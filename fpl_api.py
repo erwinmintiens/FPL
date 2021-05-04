@@ -16,65 +16,232 @@ class FPLCalls:
 
     # API CALLS
     def get_bootstrap_static(self) -> requests.Response:
-        """ Get general FPL info about the season
+        """ Get general Fantasy Premier League info about the season
 
         :return:
-            requests.Response object. requests.Response.text contains JSON info.
-            This call returns and empty requests.Response object if _base_url is None.
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The gameweeks within the current season;
+                    The overall settings of Fantasy Premier League;
+                    The phases of the current season;
+                    Properties of the Premier League teams within the current season;
+                    The total Fantasy Premier League players;
+                    Premier League player properties;
+                    Properties of the types of Premier League Players.
+            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
         """
-        url = f"{self._base_url}/bootstrap-static/"
         if not self._base_url:
-            return requests.Response()
+            response = requests.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/bootstrap-static/"
         return requests.get(url=url)
 
     def get_person_picks(self, person_id: Union[int, str], gameweek: Union[int, str]) -> requests.Response:
-        """ Get picks for a specific FPL manager in a specific gameweek.
+        """ Get picks for a specific Fantasy Premier League manager in a specific gameweek.
 
-        :param person_id: (int) | ID of the person.
-        :param gameweek: (int) | gameweek. Values 1 to 38.
-        :return: JSON
+        :param person_id: (int) or (str) | ID of the person.
+        :param gameweek: (int) or (str) | gameweek. Values 1 to 38.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Active chip within that gameweek;
+                    Automatic substitutions within that gameweek;
+                    Properties of the Fantasy Premier League team within that gameweek;
+                    The chosen lineup of the Fantasy Premier League manager within that gameweek.
+            This call returns and empty requests.Response with a 404 status code if self._base_url, person_id or gameweek is None.
         """
         if not self._base_url or not person_id or not gameweek:
-            return requests.Response()
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
         url = f"{self._base_url}/entry/{person_id}/event/{gameweek}/picks/"
         return requests.get(url=url)
 
-    def get_player_summary(self, player_id=None):
+    def get_player_summary(self, player_id: Union[int, str]) -> requests.Response:
         """ Get summary for a specific Premier League player.
 
-        :param player_id: (int) | ID of the premier league player.
+        :param player_id: (int) or (str) | ID of the premier league player.
         :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Fixtures of the Premier League player;
+                    History of the Premier League player within the current season;
+                    History of the Premier League player from the past seasons in the Premier League.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or player_id is None.
         """
-        if not player_id:
-            return
+        if not self._base_url or not player_id:
+            response = requests.Response()
+            response.status_code = 404
+            return response
         url = f"{self._base_url}/element-summary/{player_id}/"
         return requests.get(url=url)
 
-    def get_event_status(self, gameweek=None):
-        if not gameweek:
-            return
+    def get_event_status(self) -> requests.Response:
+        """ Get status of the last or ongoing gameweek.
+
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Status about the current/last gameweek.
+            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
+        """
+        if not self._base_url:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
         url = f"{self._base_url}/event-status"
         return requests.get(url=url)
 
-    def get_fixtures(self):
+    def get_fixtures(self) -> requests.Response:
+        """ Get fixtures for all games in the season.
+
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Properties of each Premier League fixture within the current season.
+            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
+        """
+        if not self._base_url:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
         url = f"{self._base_url}/fixtures"
         return requests.get(url=url)
 
-    def get_live_player_stats(self, gameweek):
-        if not gameweek:
-            return
+    def get_live_player_stats(self, gameweek: Union[int, str]) -> requests.Response:
+        """ Get all Premier League player performances within a specific gameweek.
+
+        :param gameweek: (int) or (str) | gameweek. Values 1 to 38.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Properties of each Premier League player that played/plays within this gameweek.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or gameweek is None.
+        """
+        if not self._base_url or not gameweek:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
         url = f"{self._base_url}/event/{gameweek}/live/"
         return requests.get(url=url)
 
-    def get_league_details(self, league_id):
-        if not league_id:
-            return
-        url = f"{self._base_url}/leagues-classic/{league_id}"
+    def get_classic_league_details(self, league_id: Union[int, str]) -> requests.Response:
+        """ Get classic league information bases on a league ID.
+
+        :param league_id: (int) or (str) | ID of the league.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The classic league properties.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or gameweek is None.
+        """
+        if not self._base_url or not league_id:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/leagues-classic/{league_id}/"
+        return requests.get(url=url)
+
+    def get_classic_league_standings(self, league_id: Union[int, str], page_new_entries: Union[int, str, None], page_standings: Union[int, str, None], phase: Union[int, str, None]) -> requests.Response:
+        """ Get standings of a specific classic league.
+
+        :param league_id: (int) or (str) | ID of the classic league.
+        :param page_new_entries: (int), (str) or None | Page displayed of new entries in the classic league. Default value = 1.
+        :param page_standings: (int), (str) or None | Page displayed of the standings within the classic league. Default value = 1.
+        :param phase: (int), (str) or None | Phases of the season as described in the bootstrap static call. Default value = 1 (overall).
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The classic league properties;
+                    The classic league new entries;
+                    The classic league standings.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+        """
+        if not self._base_url or not league_id:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/leagues-classic/{league_id}/standings/"
+        params = dict()
+        if page_new_entries:
+            params["page_new_entries"] = page_new_entries
+        if page_standings:
+            params["page_standings"] = page_standings
+        if phase:
+            params["page_standings"] = page_standings
+        return requests.get(url=url, params=params)
+
+    def get_h2h_league_standings(self, league_id: Union[int, str], page_new_entries: Union[int, str, None], page_standings: Union[int, str, None], phase: Union[int, str, None]) -> requests.Response:
+        """ Get standings of a specific Head To Head (H2H) league.
+
+        :param league_id: league_id: (int) or (str) | ID of the H2H league.
+        :param page_new_entries: (int), (str) or None | Page displayed of new entries in the H2H league. Default value = 1.
+        :param page_standings: (int), (str) or None | Page displayed of the standings within the H2H league. Default value = 1.
+        :param phase: (int), (str) or None | Phases of the season as described in the bootstrap static call. Default value = 1 (overall).
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The H2H league properties;
+                    The H2H league new entries;
+                    The H2H league standings.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+        """
+        if not self._base_url or not league_id:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/leagues-h2h/{league_id}/standings/"
+        params = dict()
+        if page_new_entries:
+            params["page_new_entries"] = page_new_entries
+        if page_standings:
+            params["page_standings"] = page_standings
+        if phase:
+            params["page_standings"] = page_standings
+        return requests.get(url=url, params=params)
+
+    def get_person_info(self, person_id: Union[int, str]) -> requests.Response:
+        """ Get info about a Fantasy Premier League manager.
+
+        :param person_id: (int) or (str) | ID of the Fantasy Premier League manager.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The Fantasy Premier League manager properties;
+                    The Fantasy Premier League manager team properties;
+                    The joined classic leagues;
+                    The joined h2h leagues;
+                    Cup matches.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+        """
+        if not self._base_url or not person_id:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/entry/{person_id}/"
+        return requests.get(url=url)
+
+    def get_person_history(self, person_id: Union[int, str]) -> requests.Response:
+        """ Get history about a Fantasy Premier League manager.
+
+        :param person_id: (int) or (str) | ID of the Fantasy Premier League manager.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The Fantasy Premier League manager team statistics per gameweek throughout the current season;
+                    Total points and ranking in previous seasons;
+                    When a manager played which chips in the current season.
+            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+        """
+        if not self._base_url or not person_id:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self._base_url}/entry/{person_id}/history/"
         return requests.get(url=url)
 
 
 if __name__ == '__main__':
     conn = FPLCalls()
-    conn.base_url = None
-
-    print(conn.get_bootstrap_static())
+    print(conn.get_person_history(1986671).text)
