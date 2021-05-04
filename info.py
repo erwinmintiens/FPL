@@ -1,6 +1,28 @@
 from typing import Union
 import fpl_api
 import json
+import configparser
+import __init__
+
+__init__.setup()
+
+config = configparser.ConfigParser()
+config.read("conf/config.ini")
+
+class Manager:
+    def __init__(self, person_id: int):
+        self._id = person_id
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, new_id):
+        self._id = new_id
+
+    def get_info(self):
+        return json.loads(fpl_api.FPLCalls().get_person_info(self._id).text)
 
 
 def player_id_to_name(bootstrap_static_json, player_id: Union[int, str]):
@@ -87,6 +109,8 @@ def get_player_points_per_90_minutes(fpl_connection: fpl_api.FPLCalls, player_id
 
 
 if __name__ == '__main__':
+    erwin = Manager(config["managers"]["erwin"])
+
     conn = fpl_api.FPLCalls()
     bootstrap_static_call = conn.get_bootstrap_static()
     if bootstrap_static_call.status_code != 200:

@@ -15,7 +15,7 @@ def setup():
         config["settings"] = {
             "current_season": '2021'
         }
-        config["players"] = {
+        config["managers"] = {
             "arthur": "435872",
             "louis": "412783",
             "erwin": "1986671",

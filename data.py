@@ -17,7 +17,7 @@ def get_all_person_data_and_save_to_json(bootstrap_static_json, fpl_connection: 
     for gameweek in bootstrap_static_json["events"]:
         if gameweek["is_previous"]:
             previous_gameweek = gameweek["id"]
-    for person_name, person_id in config["players"].items():
+    for person_name, person_id in config["managers"].items():
         gw_history = list()
         for item in range(1, previous_gameweek + 1):
             result_call = fpl_connection.get_person_picks(person_id, item)
@@ -33,7 +33,7 @@ def update_persons_jsons(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls
         if gameweek["is_previous"]:
             previous_gameweek = gameweek["id"]
             print("Previous Gameweek:", previous_gameweek)
-    for person_name, person_id in config["players"].items():
+    for person_name, person_id in config["managers"].items():
         if os.path.exists(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json"):
             with open(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json") as file:
                 json_file = json.load(file)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # print(get_person_captain_for_gameweek(conn, 1986671, 25))
     # print(get_points_for_player(conn, 570, 25))
     #
-    # captain_points = get_extra_captaincy_points_between_gws(conn, config["players"]["erwin"], 25, 33)
+    # captain_points = get_extra_captaincy_points_between_gws(conn, config["managers"]["erwin"], 25, 33)
     # print(sum(captain_points))
 
     # print(conn.get_person_picks(435872, 1))

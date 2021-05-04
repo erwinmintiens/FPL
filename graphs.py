@@ -13,7 +13,7 @@ config.read('conf/config.ini')
 def generate_extra_captaincy_points_graph():
     total_y_axis = list()
     persons = list()
-    for person_name, person_id in config["players"].items():
+    for person_name, person_id in config["managers"].items():
         persons.append(person_name)
         y_axis = list()
         y_axis.append(person_name)
