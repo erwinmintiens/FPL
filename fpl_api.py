@@ -255,6 +255,16 @@ class FPLCalls:
         return requests.get(url=url)
 
     def get_dream_team(self, gameweek: Union[int, str]) -> requests.Response:
+        """ Get dream team for a specific gameweek.
+
+        :param gameweek: (int) or (str) | Gameweek. Values 1 to 38.
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The top scoring player of chosen gameweek;
+                    The dream team of chosen gameweek.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+        """
         if not self.base_url or not gameweek:
             response = requests.models.Response()
             response.status_code = 404
@@ -263,6 +273,14 @@ class FPLCalls:
         return requests.get(url=url)
 
     def get_most_valuable_teams(self) -> requests.Response:
+        """ Get the top 10 most valuable teams of the moment across Fantasy Premier League.
+
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    The top 10 Fantasy Premier League teams based on total value.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+        """
         if not self.base_url:
             response = requests.models.Response()
             response.status_code = 404
@@ -271,6 +289,14 @@ class FPLCalls:
         return requests.get(url=url)
 
     def get_best_classic_private_leagues(self) -> requests.Response:
+        """ Get the top 10 private classic leagues based on the average score of the top 5 teams in those leagues.
+
+        :return:
+            (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
+                This JSON contains info about:
+                    Then name, league ID, average score and number of entries of the top 10 Fantasy Premier League teams based on the average score of the top 5 teams in those leagues.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+        """
         if not self.base_url:
             response = requests.models.Response()
             response.status_code = 404
