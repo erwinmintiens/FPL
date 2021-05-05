@@ -28,7 +28,7 @@ class FPLCalls:
                     The total Fantasy Premier League players;
                     Premier League player properties;
                     Properties of the types of Premier League Players.
-            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url is None.
         """
         if not self.base_url:
             response = requests.Response()
@@ -49,7 +49,7 @@ class FPLCalls:
                     Automatic substitutions within that gameweek;
                     Properties of the Fantasy Premier League team within that gameweek;
                     The chosen lineup of the Fantasy Premier League manager within that gameweek.
-            This call returns and empty requests.Response with a 404 status code if self.base_url, person_id or gameweek is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url, person_id or gameweek is None.
         """
         if not self.base_url or not person_id or not gameweek:
             response = requests.models.Response()
@@ -68,7 +68,7 @@ class FPLCalls:
                     Fixtures of the Premier League player;
                     History of the Premier League player within the current season;
                     History of the Premier League player from the past seasons in the Premier League.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or player_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or player_id is None.
         """
         if not self.base_url or not player_id:
             response = requests.Response()
@@ -84,7 +84,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Status about the current/last gameweek.
-            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url is None.
         """
         if not self.base_url:
             response = requests.models.Response()
@@ -106,7 +106,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Properties of Premier League fixtures within the current season.
-            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url is None.
         """
         if not self.base_url:
             response = requests.models.Response()
@@ -130,7 +130,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Properties of each Premier League player that played/plays within this gameweek.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or gameweek is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or gameweek is None.
         """
         if not self.base_url or not gameweek:
             response = requests.models.Response()
@@ -147,7 +147,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     The classic league properties.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or gameweek is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or gameweek is None.
         """
         if not self.base_url or not league_id:
             response = requests.models.Response()
@@ -169,7 +169,7 @@ class FPLCalls:
                     The classic league properties;
                     The classic league new entries;
                     The classic league standings.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url or not league_id:
             response = requests.models.Response()
@@ -198,7 +198,7 @@ class FPLCalls:
                     The H2H league properties;
                     The H2H league new entries;
                     The H2H league standings.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url or not league_id:
             response = requests.models.Response()
@@ -226,7 +226,7 @@ class FPLCalls:
                     The joined classic leagues;
                     The joined h2h leagues;
                     Cup matches.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url or not person_id:
             response = requests.models.Response()
@@ -245,7 +245,7 @@ class FPLCalls:
                     The Fantasy Premier League manager team statistics per gameweek throughout the current season;
                     Total points and ranking in previous seasons;
                     When a manager played which chips in the current season.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url or not person_id:
             response = requests.models.Response()
@@ -263,7 +263,7 @@ class FPLCalls:
                 This JSON contains info about:
                     The top scoring player of chosen gameweek;
                     The dream team of chosen gameweek.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url or not gameweek:
             response = requests.models.Response()
@@ -279,7 +279,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     The top 10 Fantasy Premier League teams based on total value.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url:
             response = requests.models.Response()
@@ -295,7 +295,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Then name, league ID, average score and number of entries of the top 10 Fantasy Premier League teams based on the average score of the top 5 teams in those leagues.
-            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
+            This call returns an empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
         if not self.base_url:
             response = requests.models.Response()
