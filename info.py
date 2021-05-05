@@ -25,7 +25,7 @@ class Team:
             with open(config["settings"]["current_season"] + "/data/teams/all_teams.json", "r") as file:
                 teams_json = json.load(file)
             for team in teams_json:
-                if team_short_name == team["short_name"]:
+                if team_short_name.upper() == team["short_name"]:
                     self._short_name = team["short_name"]
                     self._id = team["id"]
                     self._name = team["name"]
