@@ -12,22 +12,25 @@ config.read("conf/config.ini")
 
 
 class Team:
-    def __init__(self, team: Union[int, str]):
-        if type(team) == str:
-            if team.lower() not in get_all_teams():
-                raise ValueError(f"Team {team} not found in teams")
-            else:
-                self._id = team_name_to_id(team)
+    def __init__(self, team_id: Union[None, int] = None, team_short_name: Union[None, str] = None):
+        if not team_id and not team_short_name:
+            return
+        if team_id:
+            self._id = team_id
+            self._name = None
+            self._short_name = None
+            self.set_names()
         else:
-            if team not in get_all_team_ids():
-                raise ValueError(f"Team {team} not found in teams")
-            self._id = team
-        self._name = None
-        self._short_name = None
-        self._home_difficulty = None
-        self._away_difficulty = None
-        self.set_names()
-        self._properties = self.get_team_info()
+            self._short_name = None
+            with open(config["settings"]["current_season"] + "/data/teams/all_teams.json", "r") as file:
+                teams_json = json.load(file)
+            for team in teams_json:
+                if team_short_name == team["short_name"]:
+                    self._short_name = team["short_name"]
+                    self._id = team["id"]
+                    self._name = team["name"]
+            if not self._short_name:
+                raise ValueError(f"Team short name {team_short_name} not found in teams")
 
     def __str__(self):
         return f'Team {self.name} with ID {self.id}'
@@ -44,22 +47,9 @@ class Team:
     def short_name(self):
         return self._short_name
 
-    @property
-    def properties(self):
-        return self._properties
-
-    @property
-    def home_difficulty(self):
-        return self._home_difficulty
-
-    @property
-    def away_difficulty(self):
-        return self._away_difficulty
-
     @id.setter
     def id(self, new_id):
         self._id = new_id
-        self.set_names()
 
     @name.setter
     def name(self, new_name):
@@ -69,42 +59,18 @@ class Team:
     def short_name(self, new_short_name):
         self._short_name = new_short_name
 
-    @properties.setter
-    def properties(self, new_properties):
-        self._properties = new_properties
-
-    @home_difficulty.setter
-    def home_difficulty(self, new_difficulty: int):
-        self._home_difficulty = new_difficulty
-
-    @away_difficulty.setter
-    def away_difficulty(self, new_difficulty: int):
-        self._away_difficulty = new_difficulty
-
-    def get_team_info(self):
-        bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
-        if bootstrap_static_call.status_code != 200:
-            return
-        bootstrap_static = json.loads(bootstrap_static_call.text)
-        for team in bootstrap_static["teams"]:
-            if team["id"] == self.id:
-                return team
-        return
-
-    def get_all_team_fixtures_info(self):
-        fixtures_call = fpl_api.FPLCalls().get_fixtures(event=None, only_future_fixtures=False)
-        if fixtures_call.status_code != 200:
-            return None
-        fixtures = json.loads(fixtures_call.text)
-
     def set_names(self):
-        team_info = self.get_team_info()
-        if not team_info:
-            self.name = None
+        team_json = None
+        for file in os.listdir(config["settings"]["current_season"] + "/data/teams/"):
+            if file.split("_")[0] == str(self.id):
+                with open(config["settings"]["current_season"] + "/data/teams/" + file) as loaded_file:
+                    team_json = json.load(loaded_file)
+                    self.name = team_json["name"]
+                    self.short_name = team_json["short_name"]
+        if not team_json:
             self.short_name = None
-            return
-        self._name = team_info["name"]
-        self._short_name = team_info["short_name"]
+            self.name = None
+
 
 class FantasyPremierLeagueManager:
     def __init__(self, person_id: Union[int, str]):
@@ -693,9 +659,9 @@ if __name__ == '__main__':
     team2 = Team(20)
     schuppebekske = League(435851)
     een_fixture = Fixture(200)
-    manchester_united = Team("MUN")
+    manchester_united = Team(team_short_name="MUN")
+    mun_mci = get_fixture(Team(team_short_name="MUN"), Team(team_short_name="MCI"))
 
-
-    # print(get_fixture(Team("MUN"), Team("MCI")))
+    print(mun_mci.away_team)
     print(een_fixture.goals_scored)
 
