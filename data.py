@@ -5,6 +5,7 @@ import os
 import fpl_api
 import __init__
 from typing import Union
+# import info
 
 __init__.setup()
 
@@ -103,7 +104,7 @@ def update_persons_jsons(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls
                 outfile.write(json.dumps(gw_history))
 
 
-def update_entire_player_database():
+def update_entire_gameweek_database():
     conn = fpl_api.FPLCalls()
     bootstrap_static_call = conn.get_bootstrap_static()
     if bootstrap_static_call.status_code != 200:
@@ -121,13 +122,89 @@ def update_entire_player_database():
             return
         player_summary = json.loads(player_summary_call.text)
         for gw in player_summary["history"]:
-            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gw["round"]) + ".json", "r") as file:
+            with open(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(gw["round"]) + ".json", "r") as file:
                 gameweek_json = json.load(file)
             gameweek_json.append(gw)
-            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(
+            with open(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(
                     gw["round"]) + ".json", "w") as file:
                 file.write(json.dumps(gameweek_json))
 
+
+def update_entire_player_database():
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+
+    for player in bootstrap_static["elements"]:
+        player_summary_call = conn.get_player_summary(player["id"])
+        if player_summary_call.status_code != 200:
+            return
+        player_summary = json.loads(player_summary_call.text)
+        print("Player", player["id"])
+        content = list()
+        for gameweek in player_summary["history"]:
+            content.append(gameweek)
+        with open(config["settings"]["current_season"] + "/data/players/" + str(player["id"]) + "_" + str(player["web_name"]) + ".json", "w") as file:
+            file.write(json.dumps(content))
+
+
+def get_all_team_info_and_save():
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+
+    for team in bootstrap_static["teams"]:
+        with open(config["settings"]["current_season"] + "/data/teams/" + str(team["id"]) + "_" + team["name"] + ".json", "w") as file:
+            file.write(json.dumps(team))
+
+
+def get_finished_gameweeks_and_save():
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    last_finished_gameweek = 0
+    for gameweek in bootstrap_static["events"]:
+        if gameweek["finished"] and gameweek["data_checked"]:
+            with open(config["settings"]["current_season"] + "/data/gameweeks/general/gameweek_" + str(gameweek["id"]) + ".json", "w") as file:
+                file.write(json.dumps(gameweek))
+            if gameweek["id"] > last_finished_gameweek:
+                last_finished_gameweek = gameweek["id"]
+    config["settings"]["last_finished_gameweek"] = str(last_finished_gameweek)
+    save_config()
+    get_player_performances_and_save()
+
+
+def get_player_performances_and_save():
+    conn = fpl_api.FPLCalls()
+    for gameweek in range(len(os.listdir(config["settings"]["current_season"] + "/data/gameweeks/general/"))):
+        fixture_results_call = conn.get_live_player_stats(gameweek + 1)
+        if fixture_results_call.status_code != 200:
+            continue
+        fixture_results = json.loads(fixture_results_call.text)
+        with open(config["settings"]["current_season"] + "/data/gameweeks/player_performances/gameweek_" + str(gameweek + 1) + ".json", "w") as file:
+            file.write(json.dumps(fixture_results))
+
+
+def get_all_fixtures_and_save():
+    conn = fpl_api.FPLCalls()
+    fixtures_call = conn.get_fixtures(event=None, only_future_fixtures=False)
+    if fixtures_call.status_code != 200:
+        return
+    fixtures = json.loads(fixtures_call.text)
+    for fixture in fixtures:
+        print(fixture["id"])
+        if fixture["finished"]:
+            with open(config["settings"]["current_season"] + "/data/fixtures/" + str(fixture["id"]) + "-" + str(fixture["team_h"]) + "_" + str(fixture["team_a"]) + "-finished" + ".json", "w") as file:
+                file.write(json.dumps(fixture))
+        else:
+            with open(config["settings"]["current_season"] + "/data/fixtures/" + str(fixture["id"]) + "-" + str(fixture["team_h"]) + "_" + str(fixture["team_a"]) + ".json", "w") as file:
+                file.write(json.dumps(fixture))
 
 
 if __name__ == '__main__':
@@ -167,7 +244,9 @@ if __name__ == '__main__':
     # update_persons_jsons(bootstrap_static, conn)
 
     # update_entire_player_database()
-    delete_league(435851)
+    # get_all_team_info_and_save()
+    get_finished_gameweeks_and_save()
+    # get_all_fixtures_and_save()
 
 
 

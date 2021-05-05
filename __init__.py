@@ -1,7 +1,5 @@
-import json
 import os
 import configparser
-import sqlite3
 
 
 def setup():
@@ -13,7 +11,8 @@ def setup():
             os.makedirs('conf')
 
         config["settings"] = {
-            "current_season": '2021'
+            "current_season": '2021',
+            "current_gameweek": 1
         }
         config["managers"] = {
             "arthur": "435872",
@@ -34,13 +33,25 @@ def setup():
         os.makedirs(config["settings"]["current_season"])
     if not os.path.exists(config["settings"]["current_season"] + "/data"):
         os.makedirs(config["settings"]["current_season"] + "/data")
-    if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history"):
-        os.makedirs(config["settings"]["current_season"] + "/data/gameweek_history")
     if not os.path.exists(config["settings"]["current_season"] + "/data/managers"):
         os.makedirs(config["settings"]["current_season"] + "/data/managers")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/players"):
+        os.makedirs(config["settings"]["current_season"] + "/data/players")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/players/gameweek_history"):
+        os.makedirs(config["settings"]["current_season"] + "/data/players/gameweek_history")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/teams"):
+        os.makedirs(config["settings"]["current_season"] + "/data/teams")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/gameweeks"):
+        os.makedirs(config["settings"]["current_season"] + "/data/gameweeks")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/gameweeks/general"):
+        os.makedirs(config["settings"]["current_season"] + "/data/gameweeks/general")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/gameweeks/player_performances"):
+        os.makedirs(config["settings"]["current_season"] + "/data/gameweeks/player_performances")
+    if not os.path.exists(config["settings"]["current_season"] + "/data/fixtures"):
+        os.makedirs(config["settings"]["current_season"] + "/data/fixtures")
     for i in range(1, 39):
-        if not os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json"):
-            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(i) + ".json", "w") as file:
+        if not os.path.exists(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(i) + ".json"):
+            with open(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(i) + ".json", "w") as file:
                 file.write("[]")
 
 

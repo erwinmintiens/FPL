@@ -31,8 +31,8 @@ def generate_extra_captaincy_points_graph():
                 points_this_gw = 0
                 for player in gameweek["picks"]:
                     if player["is_captain"] and player["multiplier"] not in [0, "0", 1, "1"]:
-                        if os.path.exists(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json"):
-                            with open(config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json") as file:
+                        if os.path.exists(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json"):
+                            with open(config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(gameweek["entry_history"]["event"]) + ".json") as file:
                                 gameweek_json_file = json.load(file)
                             for item in gameweek_json_file:
                                 if item["element"] == player["element"]:
@@ -41,10 +41,10 @@ def generate_extra_captaincy_points_graph():
                         for player in gameweek["picks"]:
                             if player["is_vice_captain"] and player["multiplier"] not in [0, "0", 1, "1"]:
                                 if os.path.exists(
-                                        config["settings"]["current_season"] + "/data/gameweek_history/gameweek_" + str(
+                                        config["settings"]["current_season"] + "/data/players/gameweek_history/gameweek_" + str(
                                                 gameweek["entry_history"]["event"]) + ".json"):
                                     with open(config["settings"][
-                                                  "current_season"] + "/data/gameweek_history/gameweek_" + str(
+                                                  "current_season"] + "/data/players/gameweek_history/gameweek_" + str(
                                             gameweek["entry_history"]["event"]) + ".json") as file:
                                         gameweek_json_file = json.load(file)
                                     for item in gameweek_json_file:

@@ -28,13 +28,13 @@ class FPLCalls:
                     The total Fantasy Premier League players;
                     Premier League player properties;
                     Properties of the types of Premier League Players.
-            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
         """
-        if not self._base_url:
+        if not self.base_url:
             response = requests.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/bootstrap-static/"
+        url = f"{self.base_url}/bootstrap-static/"
         return requests.get(url=url)
 
     def get_person_picks(self, person_id: Union[int, str], gameweek: Union[int, str]) -> requests.Response:
@@ -49,13 +49,13 @@ class FPLCalls:
                     Automatic substitutions within that gameweek;
                     Properties of the Fantasy Premier League team within that gameweek;
                     The chosen lineup of the Fantasy Premier League manager within that gameweek.
-            This call returns and empty requests.Response with a 404 status code if self._base_url, person_id or gameweek is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url, person_id or gameweek is None.
         """
-        if not self._base_url or not person_id or not gameweek:
+        if not self.base_url or not person_id or not gameweek:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/entry/{person_id}/event/{gameweek}/picks/"
+        url = f"{self.base_url}/entry/{person_id}/event/{gameweek}/picks/"
         return requests.get(url=url)
 
     def get_player_summary(self, player_id: Union[int, str]) -> requests.Response:
@@ -68,13 +68,13 @@ class FPLCalls:
                     Fixtures of the Premier League player;
                     History of the Premier League player within the current season;
                     History of the Premier League player from the past seasons in the Premier League.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or player_id is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or player_id is None.
         """
-        if not self._base_url or not player_id:
+        if not self.base_url or not player_id:
             response = requests.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/element-summary/{player_id}/"
+        url = f"{self.base_url}/element-summary/{player_id}/"
         return requests.get(url=url)
 
     def get_event_status(self) -> requests.Response:
@@ -84,30 +84,43 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Status about the current/last gameweek.
-            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
         """
-        if not self._base_url:
+        if not self.base_url:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/event-status"
+        url = f"{self.base_url}/event-status"
         return requests.get(url=url)
 
-    def get_fixtures(self) -> requests.Response:
-        """ Get fixtures for all games in the season.
+    def get_fixtures(self, event: Union[None, int], only_future_fixtures: bool) -> requests.Response:
+        """ Get fixtures for games in the season.
 
+        :param event:
+            (None) or (int) | gameweek from which the fixtures will be fetched.
+            If set to None, all fixtures within the season will be fetched.
+        :param only_future_fixtures:
+            (bool) | If set to True, only future fixtures will be fetched.
+            This parameter only works if parameter event is set to False.
         :return:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
-                    Properties of each Premier League fixture within the current season.
-            This call returns and empty requests.Response with a 404 status code if self._base_url is None.
+                    Properties of Premier League fixtures within the current season.
+            This call returns and empty requests.Response with a 404 status code if self.base_url is None.
         """
-        if not self._base_url:
+        if not self.base_url:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/fixtures"
-        return requests.get(url=url)
+        params = {}
+        if event:
+            if event not in range(1, 39):
+                raise ValueError(f"Event {event} is not a value from 1 to 38")
+            params["event"] = event
+        if only_future_fixtures:
+            params = {"future": 1}
+        url = f"{self.base_url}/fixtures"
+        return requests.get(url=url, params=params)
 
     def get_live_player_stats(self, gameweek: Union[int, str]) -> requests.Response:
         """ Get all Premier League player performances within a specific gameweek.
@@ -117,13 +130,13 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Properties of each Premier League player that played/plays within this gameweek.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or gameweek is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or gameweek is None.
         """
-        if not self._base_url or not gameweek:
+        if not self.base_url or not gameweek:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/event/{gameweek}/live/"
+        url = f"{self.base_url}/event/{gameweek}/live/"
         return requests.get(url=url)
 
     def get_classic_league_details(self, league_id: Union[int, str]) -> requests.Response:
@@ -134,13 +147,13 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     The classic league properties.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or gameweek is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or gameweek is None.
         """
-        if not self._base_url or not league_id:
+        if not self.base_url or not league_id:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/leagues-classic/{league_id}/"
+        url = f"{self.base_url}/leagues-classic/{league_id}/"
         return requests.get(url=url)
 
     def get_classic_league_standings(self, league_id: Union[int, str], page_new_entries: Union[int, str, None], page_standings: Union[int, str, None], phase: Union[int, str, None]) -> requests.Response:
@@ -156,13 +169,13 @@ class FPLCalls:
                     The classic league properties;
                     The classic league new entries;
                     The classic league standings.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
-        if not self._base_url or not league_id:
+        if not self.base_url or not league_id:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/leagues-classic/{league_id}/standings/"
+        url = f"{self.base_url}/leagues-classic/{league_id}/standings/"
         params = dict()
         if page_new_entries:
             params["page_new_entries"] = page_new_entries
@@ -185,13 +198,13 @@ class FPLCalls:
                     The H2H league properties;
                     The H2H league new entries;
                     The H2H league standings.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
-        if not self._base_url or not league_id:
+        if not self.base_url or not league_id:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/leagues-h2h/{league_id}/standings/"
+        url = f"{self.base_url}/leagues-h2h/{league_id}/standings/"
         params = dict()
         if page_new_entries:
             params["page_new_entries"] = page_new_entries
@@ -213,13 +226,13 @@ class FPLCalls:
                     The joined classic leagues;
                     The joined h2h leagues;
                     Cup matches.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
-        if not self._base_url or not person_id:
+        if not self.base_url or not person_id:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/entry/{person_id}/"
+        url = f"{self.base_url}/entry/{person_id}/"
         return requests.get(url=url)
 
     def get_person_history(self, person_id: Union[int, str]) -> requests.Response:
@@ -232,11 +245,35 @@ class FPLCalls:
                     The Fantasy Premier League manager team statistics per gameweek throughout the current season;
                     Total points and ranking in previous seasons;
                     When a manager played which chips in the current season.
-            This call returns and empty requests.Response with a 404 status code if self._base_url or league_id is None.
+            This call returns and empty requests.Response with a 404 status code if self.base_url or league_id is None.
         """
-        if not self._base_url or not person_id:
+        if not self.base_url or not person_id:
             response = requests.models.Response()
             response.status_code = 404
             return response
-        url = f"{self._base_url}/entry/{person_id}/history/"
+        url = f"{self.base_url}/entry/{person_id}/history/"
+        return requests.get(url=url)
+
+    def get_dream_team(self, gameweek: Union[int, str]) -> requests.Response:
+        if not self.base_url or not gameweek:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self.base_url}/dream-team/{gameweek}/"
+        return requests.get(url=url)
+
+    def get_most_valuable_teams(self) -> requests.Response:
+        if not self.base_url:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self.base_url}/stats/most-valuable-teams/"
+        return requests.get(url=url)
+
+    def get_best_classic_private_leagues(self) -> requests.Response:
+        if not self.base_url:
+            response = requests.models.Response()
+            response.status_code = 404
+            return response
+        url = f"{self.base_url}/stats/best-classic-private-leagues/"
         return requests.get(url=url)

@@ -1,3 +1,4 @@
+import os
 from typing import Union
 import fpl_api
 import json
@@ -11,11 +12,22 @@ config.read("conf/config.ini")
 
 
 class Team:
-    def __init__(self, team_id):
-        self._id = team_id
+    def __init__(self, team: Union[int, str]):
+        if type(team) == str:
+            if team.lower() not in get_all_teams():
+                raise ValueError(f"Team {team} not found in teams")
+            else:
+                self._id = team_name_to_id(team)
+        else:
+            if team not in get_all_team_ids():
+                raise ValueError(f"Team {team} not found in teams")
+            self._id = team
         self._name = None
         self._short_name = None
+        self._home_difficulty = None
+        self._away_difficulty = None
         self.set_names()
+        self._properties = self.get_team_info()
 
     def __str__(self):
         return f'Team {self.name} with ID {self.id}'
@@ -32,12 +44,44 @@ class Team:
     def short_name(self):
         return self._short_name
 
+    @property
+    def properties(self):
+        return self._properties
+
+    @property
+    def home_difficulty(self):
+        return self._home_difficulty
+
+    @property
+    def away_difficulty(self):
+        return self._away_difficulty
+
     @id.setter
     def id(self, new_id):
         self._id = new_id
         self.set_names()
 
-    def get_info(self):
+    @name.setter
+    def name(self, new_name):
+        self._name = new_name
+
+    @short_name.setter
+    def short_name(self, new_short_name):
+        self._short_name = new_short_name
+
+    @properties.setter
+    def properties(self, new_properties):
+        self._properties = new_properties
+
+    @home_difficulty.setter
+    def home_difficulty(self, new_difficulty: int):
+        self._home_difficulty = new_difficulty
+
+    @away_difficulty.setter
+    def away_difficulty(self, new_difficulty: int):
+        self._away_difficulty = new_difficulty
+
+    def get_team_info(self):
         bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
         if bootstrap_static_call.status_code != 200:
             return
@@ -45,16 +89,26 @@ class Team:
         for team in bootstrap_static["teams"]:
             if team["id"] == self.id:
                 return team
+        return
+
+    def get_all_team_fixtures_info(self):
+        fixtures_call = fpl_api.FPLCalls().get_fixtures(event=None, only_future_fixtures=False)
+        if fixtures_call.status_code != 200:
+            return None
+        fixtures = json.loads(fixtures_call.text)
 
     def set_names(self):
-        team = self.get_info()
-        self._name = team["name"]
-        self._short_name = team["short_name"]
-
+        team_info = self.get_team_info()
+        if not team_info:
+            self.name = None
+            self.short_name = None
+            return
+        self._name = team_info["name"]
+        self._short_name = team_info["short_name"]
 
 class FantasyPremierLeagueManager:
-    def __init__(self, person_id: int):
-        self._id = person_id
+    def __init__(self, person_id: Union[int, str]):
+        self._id = int(person_id)
         self._first_name = None
         self._last_name = None
         self._history = self.get_history()
@@ -156,6 +210,10 @@ class PremierLeaguePlayer:
     def id(self, new_id):
         self._id = new_id
 
+    @stats.setter
+    def stats(self, new_stats):
+        self._stats = new_stats
+
     def set_names(self):
         bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
         if bootstrap_static_call.status_code != 200:
@@ -213,6 +271,7 @@ class League:
         self._league_type = league_type
         self._name = None
         self.set_name()
+        self._properties = self.get_standings()
 
     def __str__(self):
         return f'League {self.name} with ID {self.id}'
@@ -229,6 +288,10 @@ class League:
     def name(self):
         return self._name
 
+    @property
+    def properties(self):
+        return self._properties
+
     @id.setter
     def id(self, new_id: int):
         self._id = new_id
@@ -243,6 +306,10 @@ class League:
         if new_league_type not in league_types:
             raise ValueError("Invalid league type. Expected one of: %s" % league_types)
         self._league_type = new_league_type
+
+    @properties.setter
+    def properties(self, new_properties):
+        self._properties = new_properties
 
     def set_name(self):
         standings = self.get_standings()
@@ -260,44 +327,268 @@ class League:
         return json.loads(standings_call.text)
 
 
-def player_id_to_name(bootstrap_static_json, player: PremierLeaguePlayer):
-    for item in bootstrap_static_json["elements"]:
-        if item["id"] == player.id:
-            return item["web_name"]
-    return None
+class Fixture:
+    def __init__(self, fixture_id: Union[None, int]):
+        self._id = fixture_id
+        self._home_team = None
+        self._away_team = None
+        self._away_team_score = None
+        self._home_team_score = None
+        self._started = None
+        self._finished = None
+        self._goals_scored = None
+        self._assists = None
+        self._own_goals = None
+        self._penalties_saved = None
+        self._penalties_missed = None
+        self._yellow_cards = None
+        self._red_cards = None
+        self._saves = None
+        self._bonus = None
+        self._bps = None
+        self._team_h_difficulty = None
+        self._team_a_difficulty = None
+        self.set_fixture_properties()
+
+    def __str__(self):
+        if self.home_team and self.away_team:
+            return f'Fixture with ID {self.id}: {self.home_team.short_name} - {self.away_team.short_name}'
+        return f'Fixture with ID {self.id}: No teams found'
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
+    def home_team(self):
+        return self._home_team
+
+    @property
+    def away_team(self):
+        return self._away_team
+
+    @property
+    def home_team_score(self):
+        return self._home_team_score
+
+    @property
+    def away_team_score(self):
+        return self._away_team_score
+
+    @property
+    def started(self):
+        return self._started
+
+    @property
+    def finished(self):
+        return self._finished
+
+    @property
+    def goals_scored(self):
+        return self._goals_scored
+
+    @property
+    def assists(self):
+        return self._assists
+
+    @property
+    def own_goals(self):
+        return self._own_goals
+
+    @property
+    def penalties_missed(self):
+        return self._penalties_missed
+
+    @property
+    def penalties_saved(self):
+        return self._penalties_saved
+
+    @property
+    def yellow_cards(self):
+        return self._yellow_cards
+
+    @property
+    def red_cards(self):
+        return self._red_cards
+
+    @property
+    def saves(self):
+        return self._saves
+
+    @property
+    def bonus_points(self):
+        return self._bonus
+
+    @property
+    def bps(self):
+        return self._bps
+
+    @property
+    def team_h_difficulty(self):
+        return self._team_h_difficulty
+
+    @property
+    def team_a_difficulty(self):
+        return self._team_a_difficulty
+
+    @id.setter
+    def id(self, new_id):
+        self._id = new_id
+        self.set_fixture_properties()
+
+    def get_properties(self):
+        fixtures_call = fpl_api.FPLCalls().get_fixtures(event=None, only_future_fixtures=False)
+        if fixtures_call.status_code != 200:
+            return
+        fixtures = json.loads(fixtures_call.text)
+        for fixture in fixtures:
+            if fixture["id"] == self.id:
+                return fixture
+        return
+
+    def set_fixture_properties(self):
+        fixture = None
+        for file in os.listdir(config["settings"]["current_season"] + "/data/fixtures/"):
+            if self.id == int(file.split("-")[0]):
+                # print(self.id, )
+                with open(config["settings"]["current_season"] + "/data/fixtures/" + file, "r") as json_file:
+                    fixture = json.load(json_file)
+        # fixture = self.get_properties()
+        if fixture:
+            self._home_team = Team(fixture["team_h"])
+            self._away_team = Team(fixture["team_a"])
+            self._home_team_score = fixture["team_h_score"]
+            self._away_team_score = fixture["team_a_score"]
+            self._started = fixture["started"]
+            self._finished = fixture["finished"]
+            if fixture["stats"]:
+                for item in fixture["stats"]:
+                    if item["identifier"] == "goals_scored":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._goals_scored = item
+                    if item["identifier"] == "assists":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._assists = item
+                    if item["identifier"] == "own_goals":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._own_goals = item
+                    if item["identifier"] == "penalties_saved":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._penalties_saved = item
+                    if item["identifier"] == "penalties_missed":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._penalties_missed = item
+                    if item["identifier"] == "yellow_cards":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._yellow_cards = item
+                    if item["identifier"] == "red_cards":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._red_cards = item
+                    if item["identifier"] == "saves":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._saves = item
+                    if item["identifier"] == "bonus":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._bonus = item
+                    if item["identifier"] == "bps":
+                        # item["a"] = replace_player_id_with_player_object(item["a"])
+                        # item["h"] = replace_player_id_with_player_object(item["h"])
+                        self._bps = item
+            self._team_h_difficulty = fixture["team_h_difficulty"]
+            self._team_a_difficulty = fixture["team_a_difficulty"]
 
 
-def player_web_name_to_id(bootstrap_static_json, web_name: str):
+def replace_player_id_with_player_object(text):
+    if text:
+        if type(text) == dict:
+            if "element" in text:
+                text["element"] = PremierLeaguePlayer(text["element"])
+        elif type(text) == list:
+            for dictionary in text:
+                if "element" in dictionary:
+                    dictionary["element"] = PremierLeaguePlayer(dictionary["element"])
+        else:
+            raise TypeError(f"Parameter with type {type(text)} is not supported for this function")
+    return text
+
+
+def get_all_teams():
+    bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    teams = list()
+    for team in bootstrap_static["teams"]:
+        teams.append(team["name"].lower())
+        teams.append(team["short_name"].lower())
+    return teams
+
+
+def get_all_team_ids():
+    bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    teams = list()
+    for team in bootstrap_static["teams"]:
+        teams.append(team["id"])
+    return teams
+
+
+def team_name_to_id(team_name: str):
+    teams = get_all_teams()
+    if team_name.lower() not in teams:
+        raise ValueError(f"Team {team_name.lower()} not found.")
+    bootstrap_static_call = fpl_api.FPLCalls().get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    for team in bootstrap_static["teams"]:
+        if team_name.lower() in [team["name"].lower(), team["short_name"].lower()]:
+            return team["id"]
+
+
+def player_web_name_to_id(bootstrap_static_json, web_name: str) -> Union[None, int]:
     for item in bootstrap_static_json["elements"]:
         if item["web_name"] == web_name:
             return item["id"]
     return None
 
 
-def get_person_captain_for_gameweek(fpl_connection: fpl_api.FPLCalls, manager: FantasyPremierLeagueManager, gameweek: Union[int, str]):
+def get_person_captain_for_gameweek(manager: FantasyPremierLeagueManager, gameweek: Union[int, str]) -> Union[None, list]:
     captain_played = False
     vice_captain_played = False
     is_triple_captain = False
-    person_picks_call = fpl_connection.get_person_picks(manager.id, gameweek)
-    if person_picks_call.status_code != 200:
+    person_picks = manager.get_picks_for_gw(gameweek)
+    if not person_picks:
         return
-    person_picks = json.loads(person_picks_call.text)
     for player in person_picks["picks"]:
         if player["is_captain"] and player["multiplier"] not in [0, 1]:
             if player["multiplier"] == 3:
                 is_triple_captain = True
             captain_played = True
-            return [player["element"], captain_played, vice_captain_played, is_triple_captain]
+            return [PremierLeaguePlayer(player["element"]), captain_played, vice_captain_played, is_triple_captain]
         if player["is_vice_captain"] and player["multiplier"] not in [0, 1]:
             if player["multiplier"] == 3:
                 is_triple_captain = True
             vice_captain_played = True
-            return [player["element"], captain_played, vice_captain_played, is_triple_captain]
+            return [PremierLeaguePlayer(player["element"]), captain_played, vice_captain_played, is_triple_captain]
     return [None, captain_played, vice_captain_played, is_triple_captain]
 
 
-def get_points_for_player(player: PremierLeaguePlayer, gameweek: Union[int, str]):
+def get_points_for_player(player: PremierLeaguePlayer, gameweek: Union[int, str]) -> Union[None, int]:
     player_summary = player.get_summary()
+    if not player_summary:
+        return
     total = 0
     for gw in player_summary["history"]:
         if gw["round"] == gameweek:
@@ -305,10 +596,10 @@ def get_points_for_player(player: PremierLeaguePlayer, gameweek: Union[int, str]
     return total
 
 
-def get_extra_captaincy_points_between_gws(fpl_connection: fpl_api.FPLCalls, manager: FantasyPremierLeagueManager, lower_gw: Union[int, str], upper_gw: Union[int, str]):
+def get_extra_captaincy_points_between_gws(manager: FantasyPremierLeagueManager, lower_gw: Union[int, str], upper_gw: Union[int, str]) -> Union[None, list]:
     result = list()
     for gameweek in range(lower_gw, upper_gw + 1):
-        captain = get_person_captain_for_gameweek(fpl_connection, manager, gameweek)
+        captain = get_person_captain_for_gameweek(manager, gameweek)
         if type(captain) is list:
             if captain[0] is not None:
                 if captain[3]:
@@ -322,27 +613,89 @@ def get_extra_captaincy_points_between_gws(fpl_connection: fpl_api.FPLCalls, man
     return result
 
 
-def get_player_points_per_minute(player: PremierLeaguePlayer):
-    player_info = player.get_summary()
-    minutes = 0
-    points = 0
-    for game in player_info["history"]:
-        minutes += game["minutes"]
-        points += game["total_points"]
-    return points/minutes
-
-
-def get_player_points_per_90_minutes(player: PremierLeaguePlayer):
-    ppm = get_player_points_per_minute(player)
-    if ppm is None:
+def get_player_stats_in_gw(player: PremierLeaguePlayer, gameweek: Union[int, str]) -> Union[None, list]:
+    if not player.stats:
+        player.stats = player.get_summary()
+    if not player.stats:
         return
-    return ppm * 90
+    stats = list()
+    for element in player.stats["history"]:
+        if element["round"] == int(gameweek):
+            stats.append(element)
+    return stats
+
+
+def get_player_stat_per_90_minutes(player: PremierLeaguePlayer, stat: str) -> Union[None, float]:
+    stats = ["total_points", "minutes", "goals_scored", "assists", "clean_sheets", "goals_conceded", "own_goals",
+             "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "saves", "bonus", "bps", "influence",
+             "creativity", "threat", "ict_index", "value", "transfers_balance", "selected", "transfers_in",
+             "transfers_out"]
+    if stat not in stats:
+        raise ValueError(f"Stat {stat} not one of {stats}")
+    if not player.stats:
+        player.stats = player.get_summary()
+    if not player.stats:
+        return
+    stat_total = 0
+    minutes = 0
+    if stat in ["influence", "creativity", "threat", "ict_index"]:
+        for game in player.stats["history"]:
+            stat_total += float(game[stat])
+            minutes += game["minutes"]
+    else:
+        for game in player.stats["history"]:
+            stat_total += game[stat]
+            minutes += game["minutes"]
+    return stat_total / minutes * 90
+
+
+def get_player_stat_per_game(player: PremierLeaguePlayer, stat: str) -> Union[None, float]:
+    stats = ["total_points", "minutes", "goals_scored", "assists", "clean_sheets", "goals_conceded", "own_goals",
+             "penalties_saved", "penalties_missed", "yellow_cards", "red_cards", "saves", "bonus", "bps", "influence",
+             "creativity", "threat", "ict_index", "value", "transfers_balance", "selected", "transfers_in",
+             "transfers_out"]
+    if stat not in stats:
+        raise ValueError(f"Stat {stat} not one of {stats}")
+    if not player.stats:
+        player.stats = player.get_summary()
+    if not player.stats:
+        return
+    stat_total = 0
+    games = 0
+    if stat in ["influence", "creativity", "threat", "ict_index"]:
+        for game in player.stats["history"]:
+            if game["minutes"] > 0:
+                stat_total += float(game[stat])
+                games += 1
+    else:
+        for game in player.stats["history"]:
+            if game["minutes"] > 0:
+                stat_total += game[stat]
+                games += 1
+    return stat_total / games
+
+
+def get_fixture(home_team: Team, away_team: Team) -> Union[None, Fixture]:
+    fixtures_call = fpl_api.FPLCalls().get_fixtures(event=None, only_future_fixtures=False)
+    if fixtures_call.status_code != 200:
+        return
+    fixtures = json.loads(fixtures_call.text)
+    for fixture in fixtures:
+        if fixture["team_h"] == home_team.id and fixture["team_a"] == away_team.id:
+            return Fixture(fixture["id"])
+    return
 
 
 if __name__ == '__main__':
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
     bale = PremierLeaguePlayer(543)
-    arsenal = Team(1)
+    team1 = Team(14)
+    team2 = Team(20)
     schuppebekske = League(435851)
+    een_fixture = Fixture(200)
+    manchester_united = Team("MUN")
 
-    print(bale.stats)
+
+    # print(get_fixture(Team("MUN"), Team("MCI")))
+    print(een_fixture.goals_scored)
+
