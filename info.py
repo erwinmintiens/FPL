@@ -22,6 +22,8 @@ class Team:
             self.set_names()
         else:
             self._short_name = None
+            if not os.path.exists(config["settings"]["current_season"] + "/data/teams/all_teams.json"):
+                raise FileNotFoundError(f"File {config['settings']['current_season'] + '/data/teams/all_teams.json'} not found")
             with open(config["settings"]["current_season"] + "/data/teams/all_teams.json", "r") as file:
                 teams_json = json.load(file)
             for team in teams_json:
@@ -662,6 +664,13 @@ if __name__ == '__main__':
     manchester_united = Team(team_short_name="MUN")
     mun_mci = get_fixture(Team(team_short_name="MUN"), Team(team_short_name="MCI"))
 
-    print(mun_mci.away_team)
-    print(een_fixture.goals_scored)
+    # print(mun_mci.away_team)
+    # print(een_fixture.goals_scored)
+
+    for manager in config["managers"]:
+        extra_points = get_extra_captaincy_points_between_gws(FantasyPremierLeagueManager(config["managers"][manager]), 1, 34)
+        print("--------------------------------------------------------------")
+        print(manager)
+        print(extra_points)
+        print(sum(extra_points))
 

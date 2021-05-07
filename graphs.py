@@ -17,8 +17,8 @@ def generate_extra_captaincy_points_graph():
         persons.append(person_name)
         y_axis = list()
         y_axis.append(person_name)
-        if os.path.exists(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json"):
-            with open(config["settings"]["current_season"] + "/data/" + person_name + "_" + person_id + ".json") as file:
+        if os.path.exists(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json"):
+            with open(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json") as file:
                 json_file = json.load(file)
             max_gw = 0
             for gw in json_file:
@@ -59,6 +59,7 @@ def generate_extra_captaincy_points_graph():
                 else:
                     print(points_this_gw)
                     y_axis.append(points_this_gw)
+        print(person_name, max(y_axis))
         total_y_axis.append(y_axis)
     fig = plt.figure(figsize=(20, 10))
     # ax = fig.add_axes([0.05, 0.1, 0.9, 0.85])
@@ -84,6 +85,6 @@ def generate_extra_captaincy_points_graph():
         gameweek38.append(sum(element[35:38]))
     print(gameweek5)
 
+
 if __name__ == '__main__':
-    pass
-    # generate_extra_captaincy_points_graph()
+    generate_extra_captaincy_points_graph()
