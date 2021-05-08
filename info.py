@@ -136,6 +136,8 @@ class FantasyPremierLeagueManager:
         return json.loads(history_call.text)
 
     def get_picks_for_gw(self, gameweek: Union[int, str]):
+
+
         picks_call = fpl_api.FPLCalls().get_person_picks(self.id, gameweek)
         if picks_call.status_code != 200:
             return
@@ -654,6 +656,15 @@ def get_fixture(home_team: Team, away_team: Team) -> Union[None, Fixture]:
     return
 
 
+def get_captaincy_points_per_manager(lower_gameweek: int, upper_gameweek: int) -> dict:
+    points = dict()
+    for manager in config["managers"]:
+        points[manager] = get_extra_captaincy_points_between_gws(FantasyPremierLeagueManager(config["managers"][manager]), lower_gameweek, upper_gameweek)
+    if points == dict():
+        raise KeyError("No managers found in config.ini")
+    return points
+
+
 if __name__ == '__main__':
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
     bale = PremierLeaguePlayer(543)
@@ -667,10 +678,6 @@ if __name__ == '__main__':
     # print(mun_mci.away_team)
     # print(een_fixture.goals_scored)
 
-    for manager in config["managers"]:
-        extra_points = get_extra_captaincy_points_between_gws(FantasyPremierLeagueManager(config["managers"][manager]), 1, 34)
-        print("--------------------------------------------------------------")
-        print(manager)
-        print(extra_points)
-        print(sum(extra_points))
+    for key, value in get_captaincy_points_per_manager(1, 5).items():
+        print(f"{key}: {value}")
 
