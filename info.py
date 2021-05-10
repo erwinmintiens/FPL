@@ -79,11 +79,12 @@ class FantasyPremierLeagueManager:
         self._id = int(person_id)
         self._first_name = None
         self._last_name = None
-        self._history = self.get_history()
+        self._nickname = None
+        self.set_names()
         self._info = self.get_info()
 
     def __str__(self):
-        return f'FPL Manager {self.first_name} {self.last_name} with ID {self.id}'
+        return f'FPL Manager {self.first_name} {self.last_name} (with nickname {self.nickname}) with ID {self.id}'
 
     @property
     def id(self):
@@ -98,21 +99,29 @@ class FantasyPremierLeagueManager:
         return self._last_name
 
     @property
-    def history(self):
-        return self._history
+    def nickname(self):
+        return self._nickname
 
     @property
     def info(self):
         return self._info
 
     @id.setter
-    def id(self, new_id):
+    def id(self, new_id: Union[int, str]):
         self._id = new_id
         self.set_names()
 
-    @history.setter
-    def history(self, new_history):
-        self._history = new_history
+    @first_name.setter
+    def first_name(self, new_first_name: str):
+        self._first_name = new_first_name
+
+    @last_name.setter
+    def last_name(self, new_last_name: str):
+        self._last_name = new_last_name
+
+    @nickname.setter
+    def nickname(self, new_nickname: str):
+        self._nickname = new_nickname
 
     @info.setter
     def info(self, new_info):
@@ -126,8 +135,19 @@ class FantasyPremierLeagueManager:
 
     def set_names(self):
         info = self.get_info()
-        self._first_name = info["player_first_name"]
-        self._last_name = info["player_last_name"]
+        if info:
+            self._first_name = info["player_first_name"]
+            self._last_name = info["player_last_name"]
+        else:
+            self.first_name = None
+            self.last_name = None
+        nickname_set = False
+        for key, value in config["managers"].items():
+            if value == str(self.id):
+                self._nickname = key
+                nickname_set = True
+        if not nickname_set:
+            self.nickname = None
 
     def get_history(self):
         history_call = fpl_api.FPLCalls().get_person_history(self.id)
@@ -136,12 +156,18 @@ class FantasyPremierLeagueManager:
         return json.loads(history_call.text)
 
     def get_picks_for_gw(self, gameweek: Union[int, str]):
-
-
-        picks_call = fpl_api.FPLCalls().get_person_picks(self.id, gameweek)
-        if picks_call.status_code != 200:
-            return
-        return json.loads(picks_call.text)
+        supported_types = [int, str]
+        if type(gameweek) not in supported_types:
+            raise TypeError(f"Given variable 'gameweek' is type {type(gameweek)}. Please give type {supported_types}")
+        if os.path.exists(f"{config['settings']['current_season']}/data/managers/{self.nickname}_{self.id}.json"):
+            with open(f"{config['settings']['current_season']}/data/managers/{self.nickname}_{self.id}.json", "r") as file:
+                manager_season_history_json = json.load(file)
+        else:
+            raise FileNotFoundError(f"File {config['settings']['current_season']}/data/managers/{self.nickname}_{self.id}.json not found")
+        for event in manager_season_history_json:
+            if event["entry_history"]["event"] == int(gameweek):
+                return event
+        raise ValueError(f"Gameweek {gameweek} not found in file")
 
 
 class PremierLeaguePlayer:
@@ -677,7 +703,4 @@ if __name__ == '__main__':
 
     # print(mun_mci.away_team)
     # print(een_fixture.goals_scored)
-
-    for key, value in get_captaincy_points_per_manager(1, 5).items():
-        print(f"{key}: {value}")
 
