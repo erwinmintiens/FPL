@@ -163,11 +163,8 @@ def get_entire_player_properties_and_save():
             return
         player_summary = json.loads(player_summary_call.text)
         print("Player", player["id"])
-        content = list()
-        for gameweek in player_summary["history"]:
-            content.append(gameweek)
         with open(config["settings"]["current_season"] + "/data/players/" + str(player["id"]) + "_" + str(player["web_name"]) + ".json", "w") as file:
-            file.write(json.dumps(content))
+            file.write(json.dumps(player_summary["history"]))
 
 
 def get_all_team_info_and_save():
@@ -229,6 +226,16 @@ def get_all_fixtures_and_save():
                 file.write(json.dumps(fixture))
 
 
+def get_bootstrap_static_and_save():
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static = json.loads(bootstrap_static_call.text)
+    with open(f"{config['settings']['current_season']}/data/bootstrap_static.json", "w") as file:
+        file.write(json.dumps(bootstrap_static))
+
+
 if __name__ == '__main__':
 
     conn = fpl_api.FPLCalls()
@@ -261,7 +268,8 @@ if __name__ == '__main__':
 
     # fetch_all_latest_info()
     # get_all_person_data_and_save_to_json()
-    get_all_team_info_and_save()
+    # get_all_team_info_and_save()
+    get_entire_player_properties_and_save()
 
 
 
