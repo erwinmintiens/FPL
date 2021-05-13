@@ -478,7 +478,6 @@ class Fixture:
                 # print(self.id, )
                 with open(config["settings"]["current_season"] + "/data/fixtures/" + file, "r") as json_file:
                     fixture = json.load(json_file)
-        # fixture = self.get_properties()
         if fixture:
             self._home_team = Team(fixture["team_h"])
             self._away_team = Team(fixture["team_a"])
@@ -510,6 +509,25 @@ class Fixture:
                         self._bps = replace_all_player_ids_with_players_in_stats(item)
             self._team_h_difficulty = fixture["team_h_difficulty"]
             self._team_a_difficulty = fixture["team_a_difficulty"]
+        else:
+            self._home_team = None
+            self._away_team = None
+            self._away_team_score = None
+            self._home_team_score = None
+            self._started = None
+            self._finished = None
+            self._goals_scored = None
+            self._assists = None
+            self._own_goals = None
+            self._penalties_saved = None
+            self._penalties_missed = None
+            self._yellow_cards = None
+            self._red_cards = None
+            self._saves = None
+            self._bonus = None
+            self._bps = None
+            self._team_h_difficulty = None
+            self._team_a_difficulty = None
 
 
 def replace_player_id_with_player_object(text):
