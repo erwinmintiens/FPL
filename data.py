@@ -7,8 +7,6 @@ import __init__
 from typing import Union
 # import info
 
-__init__.setup()
-
 config = configparser.ConfigParser()
 config.read('conf/config.ini')
 
