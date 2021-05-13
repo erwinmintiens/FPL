@@ -730,6 +730,7 @@ def update_all_files():
 
 
 if __name__ == '__main__':
+    # update_all_files()
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
     bale = PremierLeaguePlayer(543)
     team1 = Team(14)
