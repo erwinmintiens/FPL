@@ -4,6 +4,7 @@ import fpl_api
 import json
 import configparser
 import __init__
+import data
 
 __init__.setup()
 
@@ -665,6 +666,10 @@ def get_captaincy_points_per_manager(lower_gameweek: int, upper_gameweek: int) -
     return points
 
 
+def update_all_files():
+    data.fetch_all_latest_info()
+
+
 if __name__ == '__main__':
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
     bale = PremierLeaguePlayer(543)
@@ -678,6 +683,5 @@ if __name__ == '__main__':
     # print(mun_mci.away_team)
     # print(een_fixture.goals_scored)
 
-    for key, value in get_captaincy_points_per_manager(1, 5).items():
-        print(f"{key}: {value}")
+    update_all_files()
 
