@@ -714,8 +714,9 @@ if __name__ == '__main__':
     schuppebekske = League(435851)
     een_fixture = Fixture(200)
     manchester_united = Team(team_short_name="MUN")
-    mun_mci = get_fixture(Team(team_short_name="MUN"), Team(team_short_name="MCI"))
+    mun_mci = get_fixture(manchester_united, Team(team_short_name="MCI"))
 
     # print(mun_mci.away_team)
     print(een_fixture.yellow_cards)
+    print(get_captaincy_points_per_manager(34, 35))
 

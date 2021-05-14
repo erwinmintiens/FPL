@@ -72,12 +72,14 @@ def delete_league(league_id: Union[int, str]):
 
 
 def get_all_person_data_and_save_to_json():
-    conn = fpl_api.FPLCalls()
-    bootstrap_static_call = conn.get_bootstrap_static()
-    if bootstrap_static_call.status_code != 200:
+    event_status_call = conn.get_event_status()
+    if event_status_call.status_code != 200:
         return
-    bootstrap_static = json.loads(bootstrap_static_call.text)
-    previous_gameweek = 0
+    event_status = json.loads(event_status_call.text)
+    if event_status["leagues"] == "Updated":
+        previous_gameweek = event_status["status"][0]["event"]
+    else:
+        previous_gameweek = event_status["status"][0]["event"] - 1
     for gameweek in bootstrap_static["events"]:
         if gameweek["is_previous"]:
             previous_gameweek = gameweek["id"]
@@ -91,12 +93,15 @@ def get_all_person_data_and_save_to_json():
             outfile.write(json.dumps(gw_history))
 
 
-def update_persons_jsons(bootstrap_static_json, fpl_connection: fpl_api.FPLCalls):
-    previous_gameweek = 0
-    for gameweek in bootstrap_static_json["events"]:
-        if gameweek["is_previous"]:
-            previous_gameweek = gameweek["id"]
-            print("Previous Gameweek:", previous_gameweek)
+def update_persons_jsons(fpl_connection: fpl_api.FPLCalls):
+    event_status_call = conn.get_event_status()
+    if event_status_call.status_code != 200:
+        return
+    event_status = json.loads(event_status_call.text)
+    if event_status["leagues"] == "Updated":
+        previous_gameweek = event_status["status"][0]["event"]
+    else:
+        previous_gameweek = event_status["status"][0]["event"] - 1
     for person_name, person_id in config["managers"].items():
         if os.path.exists(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json"):
             with open(config["settings"]["current_season"] + "/data/managers/" + person_name + "_" + person_id + ".json") as file:
@@ -131,9 +136,15 @@ def get_entire_gameweek_results_per_player_and_save():
         return
     bootstrap_static = json.loads(bootstrap_static_call.text)
 
-    for event in bootstrap_static["events"]:
-        if event["finished"] and event["is_previous"]:
-            last_gw = event["id"]
+    event_status_call = conn.get_event_status()
+    if event_status_call.status_code != 200:
+        return
+    event_status = json.loads(event_status_call.text)
+    if event_status["leagues"] == "Updated":
+        previous_gameweek = event_status["status"][0]["event"]
+    else:
+        previous_gameweek = event_status["status"][0]["event"] - 1
+
 
     for player in bootstrap_static["elements"]:
         print("Player", player["id"])
@@ -269,7 +280,7 @@ if __name__ == '__main__':
     # fetch_all_latest_info()
     # get_all_person_data_and_save_to_json()
     # get_all_team_info_and_save()
-    get_entire_player_properties_and_save()
+    get_all_person_data_and_save_to_json()
 
 
 
