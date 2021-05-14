@@ -624,7 +624,7 @@ def get_points_for_player(player: PremierLeaguePlayer, gameweek: Union[int, str]
     if not player_summary:
         return
     total = 0
-    for gw in player_summary["history"]:
+    for gw in player_summary:
         if gw["round"] == gameweek:
             total += gw["total_points"]
     return total

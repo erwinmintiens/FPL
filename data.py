@@ -76,13 +76,13 @@ def get_all_person_data_and_save_to_json():
     if event_status_call.status_code != 200:
         return
     event_status = json.loads(event_status_call.text)
+    print(event_status)
     if event_status["leagues"] == "Updated":
+        print("here")
         previous_gameweek = event_status["status"][0]["event"]
     else:
         previous_gameweek = event_status["status"][0]["event"] - 1
-    for gameweek in bootstrap_static["events"]:
-        if gameweek["is_previous"]:
-            previous_gameweek = gameweek["id"]
+    print(previous_gameweek)
     for person_name, person_id in config["managers"].items():
         gw_history = list()
         for item in range(1, previous_gameweek + 1):
@@ -174,7 +174,7 @@ def get_entire_player_properties_and_save():
             return
         player_summary = json.loads(player_summary_call.text)
         print("Player", player["id"])
-        with open(config["settings"]["current_season"] + "/data/players/" + str(player["id"]) + "_" + str(player["web_name"]) + ".json", "w") as file:
+        with open(f"{config['settings']['current_season']}/data/players/{player['id']}_{player['web_name']}.json", "w") as file:
             file.write(json.dumps(player_summary["history"]))
 
 
