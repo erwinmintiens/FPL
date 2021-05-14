@@ -7,8 +7,6 @@ import __init__
 from typing import Union
 # import info
 
-__init__.setup()
-
 config = configparser.ConfigParser()
 config.read('conf/config.ini')
 
@@ -26,6 +24,8 @@ def fetch_all_latest_info():
     get_finished_gameweeks_and_save()
     print("Get fixtures...")
     get_all_fixtures_and_save()
+    print("Getting bootstrap_static...")
+    get_bootstrap_static_and_save()
 
 
 def save_config():
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     # fetch_all_latest_info()
     # get_all_person_data_and_save_to_json()
     # get_all_team_info_and_save()
-    get_all_person_data_and_save_to_json()
+    get_entire_player_properties_and_save()
 
 
 
