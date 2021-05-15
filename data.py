@@ -72,17 +72,15 @@ def delete_league(league_id: Union[int, str]):
 
 
 def get_all_person_data_and_save_to_json():
+    conn = fpl_api.FPLCalls()
     event_status_call = conn.get_event_status()
     if event_status_call.status_code != 200:
         return
     event_status = json.loads(event_status_call.text)
-    print(event_status)
     if event_status["leagues"] == "Updated":
-        print("here")
         previous_gameweek = event_status["status"][0]["event"]
     else:
         previous_gameweek = event_status["status"][0]["event"] - 1
-    print(previous_gameweek)
     for person_name, person_id in config["managers"].items():
         gw_history = list()
         for item in range(1, previous_gameweek + 1):
