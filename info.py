@@ -728,7 +728,7 @@ def update_all_files():
 
 
 if __name__ == '__main__':
-    # update_all_files()
+    update_all_files()
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
     bale = PremierLeaguePlayer(543)
     team1 = Team(14)
@@ -740,5 +740,5 @@ if __name__ == '__main__':
 
     # print(mun_mci.away_team)
     print(een_fixture.yellow_cards)
-    print(get_captaincy_points_per_manager(34, 35))
+    print(get_captaincy_points_per_manager(36, 36))
 
