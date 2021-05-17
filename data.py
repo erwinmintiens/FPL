@@ -276,9 +276,9 @@ if __name__ == '__main__':
     # print(sum(captain_points))
 
     # fetch_all_latest_info()
-    # get_all_person_data_and_save_to_json()
+    get_all_person_data_and_save_to_json()
     # get_all_team_info_and_save()
-    get_entire_player_properties_and_save()
+    # get_entire_player_properties_and_save()
 
 
 

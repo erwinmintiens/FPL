@@ -82,9 +82,14 @@ def team_name_to_id(team_name: str):
             return team["id"]
 
 
-def player_web_name_to_id(bootstrap_static_json, web_name: str) -> Union[None, int]:
+def player_web_name_to_id(web_name: str) -> Union[None, int]:
+    conn = fpl_api.FPLCalls()
+    bootstrap_static_call = conn.get_bootstrap_static()
+    if bootstrap_static_call.status_code != 200:
+        return
+    bootstrap_static_json = json.loads(bootstrap_static_call.text)
     for item in bootstrap_static_json["elements"]:
-        if item["web_name"] == web_name:
+        if item["web_name"].lower() == web_name.lower():
             return item["id"]
     return None
 
@@ -219,8 +224,9 @@ def update_all_files():
 
 
 if __name__ == '__main__':
-    update_all_files()
+    # update_all_files()
     erwin = FantasyPremierLeagueManager(config["managers"]["erwin"])
+    niels = FantasyPremierLeagueManager(config['managers']['niels'])
     bale = PremierLeaguePlayer(543)
     team1 = Team(14)
     team2 = Team(20)
@@ -231,5 +237,6 @@ if __name__ == '__main__':
 
     # print(mun_mci.away_team)
     print(een_fixture.yellow_cards)
-    print(get_captaincy_points_per_manager(36, 36))
+    # print(get_captaincy_points_per_manager(36, 36))
+    print(get_extra_captaincy_points_between_gws(niels, 1, 36))
 

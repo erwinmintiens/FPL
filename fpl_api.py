@@ -84,6 +84,7 @@ class FPLCalls:
             (requests.Response) | requests.Response.text contains JSON info if the call was successful. The object has a 200 status code if the call succeeds.
                 This JSON contains info about:
                     Status about the current/last gameweek.
+                    Status of the leagues. Values: "Updated", "Updating".
             This call returns an empty requests.Response with a 404 status code if self.base_url is None.
         """
         if not self.base_url:
