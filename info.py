@@ -219,6 +219,29 @@ def get_captaincy_points_per_manager(lower_gameweek: int, upper_gameweek: int) -
     return points
 
 
+def get_all_used_players(manager: FantasyPremierLeagueManager, lower_gameweek: int, upper_gameweek: int) -> set:
+    players = set(list())
+    for gameweek in range(lower_gameweek, upper_gameweek + 1):
+        picks = manager.get_picks_for_gw(gameweek)
+        for player in picks['picks']:
+            players.add(player['element'])
+    return players
+
+
+def get_all_used_players_per_manager():
+    result = dict()
+    for manager in config['managers']:
+        player_list = list()
+        players = get_all_used_players(FantasyPremierLeagueManager(config['managers'][manager]), 1, 38)
+        for player in players:
+            player_list.append(PremierLeaguePlayer(player).web_name)
+        result[manager] = {
+            'players': player_list,
+            'total': len(player_list)
+        }
+    return result
+
+
 def update_all_files():
     data.fetch_all_latest_info()
 
@@ -236,7 +259,11 @@ if __name__ == '__main__':
     mun_mci = get_fixture(manchester_united, Team(team_short_name="MCI"))
 
     # print(mun_mci.away_team)
-    print(een_fixture.yellow_cards)
+    # print(een_fixture.yellow_cards)
     # print(get_captaincy_points_per_manager(36, 36))
-    print(get_extra_captaincy_points_between_gws(niels, 1, 36))
+    # print(get_extra_captaincy_points_between_gws(niels, 1, 36))
+
+    print(get_all_used_players_per_manager())
+
+
 
